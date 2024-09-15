@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
 
@@ -8,9 +11,36 @@ class SerialPortProvider extends ChangeNotifier {
 
   List<String> status = [];
 
+  SerialPortReader? _reader;
+  StreamSubscription<Uint8List>? _readerStream;
+
   void initPort(SerialPort port) {
     selectedPort = port;
     updateState('Selected port: $port');
+  }
+
+  void streamPortsOpen() {
+    if (_reader != null) return;
+    updateState('Open Stream');
+    _reader = SerialPortReader(selectedPort);
+
+    _readerStream = _reader!.stream.listen((Uint8List data) {
+      updateState(' $data');
+      updateState('-- String: ${String.fromCharCodes(data)}');
+      updateState('-- UTF8: ${utf8.decoder.convert(data.toList())}');
+    });
+  }
+
+  void streamPortsClose() {
+    if (_readerStream != null) {
+      _readerStream!.cancel();
+      _readerStream = null;
+    }
+    if (_reader != null) {
+      _reader!.close();
+      _reader = null;
+    }
+    updateState('Close Stream');
   }
 
   void getPorts() {

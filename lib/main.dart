@@ -19,31 +19,21 @@ class App extends StatelessWidget {
   }
 
   Widget _buildTabBar(BuildContext context) {
-    return DefaultTabController(
-      initialIndex: 1,
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Flutter Serial Port example'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(
-                icon: Icon(Icons.tag),
-              ),
-              Tab(
-                icon: Icon(Icons.insert_drive_file_outlined),
-              ),
-            ],
-          ),
-        ),
-        body: const TabBarView(
-          children: <Widget>[
-            SingleChildScrollView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Flutter Serial Port example'),
+      ),
+      body: const Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Flexible(
+            child: SingleChildScrollView(
               child: SerialPortExample(),
             ),
-            StatusWidget(),
-          ],
-        ),
+          ),
+          VerticalDivider(),
+          Flexible(child: StatusWidget()),
+        ],
       ),
     );
   }
@@ -56,11 +46,22 @@ class SerialPortExample extends StatelessWidget {
   Widget build(BuildContext context) {
     SerialPortProvider provider = context.watch<SerialPortProvider>();
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         const SizedBox(height: 4),
-        FilledButton(
-          onPressed: provider.open,
-          child: const Text('Open port'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FilledButton(
+              onPressed: provider.open,
+              child: const Text('Open port'),
+            ),
+            const SizedBox(width: 4),
+            FilledButton(
+              onPressed: provider.close,
+              child: const Text('Close port'),
+            ),
+          ],
         ),
         const SizedBox(height: 4),
         FilledButton(
@@ -68,9 +69,27 @@ class SerialPortExample extends StatelessWidget {
           child: const Text('Read'),
         ),
         const SizedBox(height: 4),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FilledButton(
+              onPressed: provider.streamPortsOpen,
+              child: const Text('Stream open'),
+            ),
+            const SizedBox(width: 4),
+            FilledButton(
+              onPressed: provider.streamPortsClose,
+              child: const Text('Stream close'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
         FilledButton(
-          onPressed: provider.close,
-          child: const Text('Close port'),
+          style: ButtonStyle(
+            backgroundColor: WidgetStateProperty.all(Colors.green),
+          ),
+          onPressed: () => provider.updateState.call('-----------'),
+          child: const Text('Write line'),
         ),
         const SizedBox(height: 4),
         const Divider(),
@@ -127,7 +146,7 @@ class StatusWidget extends StatelessWidget {
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       itemBuilder: (context, index) =>
-          Text('${status.length - 1 - index}: ${status[index]}'),
+          SelectableText('${status.length - 1 - index}: ${status[index]}'),
       separatorBuilder: (context, index) => const SizedBox(height: 4),
       itemCount: status.length,
     );
