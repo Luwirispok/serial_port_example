@@ -16,6 +16,7 @@ class SerialPortProvider extends ChangeNotifier {
 
   void initPort(SerialPort port) {
     selectedPort = port;
+    selectedPort.config = _getConfig(selectedPort.address);
     updateState('Selected port: $port');
   }
 
@@ -26,7 +27,6 @@ class SerialPortProvider extends ChangeNotifier {
 
     _readerStream = _reader!.stream.listen((Uint8List data) {
       updateState(' $data');
-      updateState('-- String: ${String.fromCharCodes(data)}');
       updateState('-- UTF8: ${utf8.decoder.convert(data.toList())}');
     });
   }
@@ -43,6 +43,15 @@ class SerialPortProvider extends ChangeNotifier {
     updateState('Close Stream');
   }
 
+  SerialPortConfig _getConfig(int address) {
+    SerialPortConfig config = SerialPortConfig()
+      ..baudRate = 9600
+      ..bits = 8
+      ..parity = 1
+      ..stopBits = 1;
+    return config;
+  }
+
   void getPorts() {
     availablePorts = SerialPort.availablePorts;
     ports = availablePorts.map((String port) => SerialPort(port)).toList();
@@ -55,7 +64,7 @@ class SerialPortProvider extends ChangeNotifier {
         updateState('Port already open (${selectedPort.address})');
       } else {
         int mode = SerialPortMode.readWrite;
-        selectedPort.open(mode: SerialPortMode.readWrite);
+        selectedPort.open(mode: mode);
         updateState('Opened port: ${selectedPort.address} in mode $mode');
       }
     } catch (e) {
@@ -67,6 +76,7 @@ class SerialPortProvider extends ChangeNotifier {
     try {
       final read = selectedPort.read(1024);
       updateState("Read $read");
+      updateState("-- UTF8: ${utf8.decode(read)}");
     } catch (e) {
       updateState(e.toString());
     }
@@ -74,12 +84,11 @@ class SerialPortProvider extends ChangeNotifier {
 
   void close() {
     try {
-      selectedPort.openReadWrite();
       if (!selectedPort.isOpen) {
         updateState('Port already closed (${selectedPort.address})');
       } else {
-        selectedPort.dispose();
         selectedPort.close();
+        selectedPort.dispose();
         updateState('Closed port: ${selectedPort.address}');
       }
     } catch (e) {
