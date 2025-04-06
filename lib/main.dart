@@ -47,8 +47,9 @@ class SerialPortExample extends StatelessWidget {
     SerialPortProvider provider = context.watch<SerialPortProvider>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
+      spacing: 4,
       children: [
-        const SizedBox(height: 4),
+        FieldBaudRateWidget(),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -63,12 +64,10 @@ class SerialPortExample extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
         FilledButton(
           onPressed: provider.read,
           child: const Text('Read'),
         ),
-        const SizedBox(height: 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -83,7 +82,6 @@ class SerialPortExample extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 4),
         FilledButton(
           style: ButtonStyle(
             backgroundColor: WidgetStateProperty.all(Colors.green),
@@ -91,16 +89,12 @@ class SerialPortExample extends StatelessWidget {
           onPressed: () => provider.updateState.call('-----------'),
           child: const Text('Write line'),
         ),
-        const SizedBox(height: 4),
         const Divider(),
-        const SizedBox(height: 4),
         FilledButton(
           onPressed: provider.getPorts,
           child: const Text('Get ports'),
         ),
-        const SizedBox(height: 4),
         _buildListPorts(provider),
-        const SizedBox(height: 4),
       ],
     );
   }
@@ -112,12 +106,10 @@ class SerialPortExample extends StatelessWidget {
           ExpansionTile(
             title: Text(port.toString()),
             children: [
-              const SizedBox(height: 4),
               FilledButton(
                 onPressed: () => provider.initPort(port),
                 child: const Text('Change selected port'),
               ),
-              const SizedBox(height: 4),
               const Divider(),
               CardListTile('Description', port.description),
               CardListTile('Transport', port.transport.toTransport()),
@@ -131,6 +123,58 @@ class SerialPortExample extends StatelessWidget {
               CardListTile('MAC Address', port.macAddress),
             ],
           ),
+      ],
+    );
+  }
+}
+
+class FieldBaudRateWidget extends StatefulWidget {
+  const FieldBaudRateWidget({
+    super.key,
+  });
+
+  @override
+  State<FieldBaudRateWidget> createState() => _FieldBaudRateWidgetState();
+}
+
+/// State for widget FieldWidget.
+class _FieldBaudRateWidgetState extends State<FieldBaudRateWidget> {
+  String text = '';
+  late TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    SerialPortProvider provider = context.watch<SerialPortProvider>();
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      spacing: 20,
+      children: [
+        SizedBox(
+          width: 150,
+          child: TextField(
+            decoration: const InputDecoration(
+                labelText: 'BaudRate', border: OutlineInputBorder()),
+            controller: controller,
+            onChanged: (value) => setState(() => text = value),
+          ),
+        ),
+        ElevatedButton(
+            onPressed: () {
+              provider.updateBaudRate(int.parse(text));
+            },
+            child: const Text('Обновить baudRate')),
       ],
     );
   }

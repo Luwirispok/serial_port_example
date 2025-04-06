@@ -16,8 +16,10 @@ class SerialPortProvider extends ChangeNotifier {
 
   void initPort(SerialPort port) {
     selectedPort = port;
-    selectedPort.config = _getConfig(selectedPort.address);
+    selectedPort.config = _getConfig();
     updateState('Selected port: $port');
+    open();
+    streamPortsOpen();
   }
 
   void streamPortsOpen() {
@@ -43,12 +45,28 @@ class SerialPortProvider extends ChangeNotifier {
     updateState('Close Stream');
   }
 
-  SerialPortConfig _getConfig(int address) {
-    SerialPortConfig config = SerialPortConfig()
-      ..baudRate = 9600
-      ..bits = 8
-      ..parity = 1
-      ..stopBits = 1;
+  void updateBaudRate(int baudRate) {
+    selectedPort.config.baudRate = baudRate;
+    updateState('BaudRate: $baudRate');
+  }
+
+  SerialPortConfig _getConfig([int? address]) {
+    late SerialPortConfig config;
+    if (address != null) {
+      config = SerialPortConfig.fromAddress(address);
+    } else {
+      config = SerialPortConfig();
+    }
+    config
+      ..baudRate = 9600 // Скорость
+      ..bits = 8 // 8 бит данных
+      ..stopBits = 1 // 1 стоп-бит
+      ..parity = SerialPortParity.none // Без чётности
+      ..setFlowControl(SerialPortFlowControl.none)
+      ..rts = SerialPortRts.off
+      ..dtr = SerialPortDtr.off; // Без управления потоком
+    // ..parity = 1
+    // config..stopBits = 1;
     return config;
   }
 
@@ -87,8 +105,9 @@ class SerialPortProvider extends ChangeNotifier {
       if (!selectedPort.isOpen) {
         updateState('Port already closed (${selectedPort.address})');
       } else {
+        streamPortsClose();
         selectedPort.close();
-        selectedPort.dispose();
+        // selectedPort.dispose();
         updateState('Closed port: ${selectedPort.address}');
       }
     } catch (e) {
@@ -97,6 +116,7 @@ class SerialPortProvider extends ChangeNotifier {
   }
 
   void updateState(String text) {
+    print(text);
     status.add(text);
     notifyListeners();
   }
