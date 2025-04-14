@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:serial_port_example/extensions.dart';
-import 'package:serial_port_example/serial_port_provider.dart';
+import 'package:serial_port_example/serial_port_provider_win.dart';
 
 void main() => runApp(const App());
 
@@ -104,23 +103,24 @@ class SerialPortExample extends StatelessWidget {
       children: [
         for (final port in provider.ports)
           ExpansionTile(
-            title: Text(port.toString()),
+            title: Text(port.portName),
             children: [
               FilledButton(
                 onPressed: () => provider.initPort(port),
                 child: const Text('Change selected port'),
               ),
               const Divider(),
-              CardListTile('Description', port.description),
-              CardListTile('Transport', port.transport.toTransport()),
-              CardListTile('USB Bus', port.busNumber?.toPadded()),
-              CardListTile('USB Device', port.deviceNumber?.toPadded()),
-              CardListTile('Vendor ID', port.vendorId?.toHex()),
-              CardListTile('Product ID', port.productId?.toHex()),
-              CardListTile('Manufacturer', port.manufacturer),
-              CardListTile('Product Name', port.productName),
-              CardListTile('Serial Number', port.serialNumber),
-              CardListTile('MAC Address', port.macAddress),
+              // CardListTile('Description', port.description),
+              // CardListTile('Transport', port.transport.toTransport()),
+              // CardListTile('USB Bus', port.busNumber?.toPadded()),
+              // CardListTile('USB Device', port.deviceNumber?.toPadded()),
+              // CardListTile('Vendor ID', port.vendorId?.toHex()),
+              // CardListTile('Product ID', port.productId?.toHex()),
+              // CardListTile('Manufacturer', port.manufacturer),
+              // CardListTile('Product Name', port.productName),
+              // CardListTile('Serial Number', port.serialNumber),
+              // CardListTile('MAC Address', port.macAddress),
+              CardListTile('USB Device', port.portName),
             ],
           ),
       ],

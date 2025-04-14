@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer' show log;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
@@ -25,11 +26,13 @@ class SerialPortProvider extends ChangeNotifier {
   void streamPortsOpen() {
     if (_reader != null) return;
     updateState('Open Stream');
-    _reader = SerialPortReader(selectedPort);
+    _reader = SerialPortReader(selectedPort, timeout: 1000);
 
     _readerStream = _reader!.stream.listen((Uint8List data) {
       updateState(' $data');
       updateState('-- UTF8: ${utf8.decoder.convert(data.toList())}');
+    }, onError: (e) {
+      updateState('Error: $e');
     });
   }
 
@@ -62,9 +65,11 @@ class SerialPortProvider extends ChangeNotifier {
       ..bits = 8 // 8 бит данных
       ..stopBits = 1 // 1 стоп-бит
       ..parity = SerialPortParity.none // Без чётности
-      ..setFlowControl(SerialPortFlowControl.none)
-      ..rts = SerialPortRts.off
-      ..dtr = SerialPortDtr.off; // Без управления потоком
+      ..setFlowControl(SerialPortFlowControl.rtsCts)
+      ..rts = SerialPortRts.flowControl
+      ..cts = SerialPortCts.flowControl
+      ..dsr = SerialPortDsr.flowControl
+      ..dtr = SerialPortDtr.flowControl; // Без управления потоком
     // ..parity = 1
     // config..stopBits = 1;
     return config;
@@ -81,7 +86,7 @@ class SerialPortProvider extends ChangeNotifier {
       if (selectedPort.isOpen) {
         updateState('Port already open (${selectedPort.address})');
       } else {
-        int mode = SerialPortMode.readWrite;
+        int mode = SerialPortMode.read;
         selectedPort.open(mode: mode);
         updateState('Opened port: ${selectedPort.address} in mode $mode');
       }
@@ -116,7 +121,7 @@ class SerialPortProvider extends ChangeNotifier {
   }
 
   void updateState(String text) {
-    print(text);
+    log(text);
     status.add(text);
     notifyListeners();
   }
